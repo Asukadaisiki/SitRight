@@ -109,12 +109,20 @@ public class MainViewModel : INotifyPropertyChanged
         BindEvents();
     }
 
+    public event Action<string>? OnLog;
+
     private void BindEvents()
     {
         _serialService.OnLineReceived += line =>
         {
+            // [诊断1] 串口原始数据
+            OnLog?.Invoke($"[DIAG-1] 串口收到: \"{line}\"");
+
             if (_protocol.TryParseFull(line, out var type, out var value, out var ack, out var err))
             {
+                // [诊断2] 协议解析结果
+                OnLog?.Invoke($"[DIAG-2] 解析成功: type={type}, value={value}");
+
                 switch (type)
                 {
                     case ProtocolLineType.RuntimeData:
@@ -124,6 +132,10 @@ public class MainViewModel : INotifyPropertyChanged
 
                         var overlayState = _valueMapper.Map(value);
                         DisplayValueText = value.ToString();
+                        // [诊断3] Overlay 状态计算结果
+                        OnLog?.Invoke($"[DIAG-3] Overlay: opacity={overlayState.MaskOpacity:F3}, color={overlayState.MaskColor}, edge={overlayState.EdgeOpacity:F3}");
+                        // [诊断4] 即将触发 OnOverlayStateChanged
+                        OnLog?.Invoke($"[DIAG-4] OnOverlayStateChanged 订阅者数: {OnOverlayStateChanged?.GetInvocationList()?.Length ?? 0}");
                         OnOverlayStateChanged?.Invoke(overlayState);
                         break;
 
@@ -139,6 +151,11 @@ public class MainViewModel : INotifyPropertyChanged
                         OnCalibrationChanged?.Invoke(CalibrationData);
                         break;
                 }
+            }
+            else
+            {
+                // [诊断2] 协议解析失败 — 关键：数据格式不匹配！
+                OnLog?.Invoke($"[DIAG-2] 解析失败，丢弃: \"{line}\"");
             }
         };
 

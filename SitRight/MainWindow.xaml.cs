@@ -41,7 +41,12 @@ public partial class MainWindow : Window
 
         RefreshMonitors(config.TargetMonitorIndex);
 
-        _viewModel.OnOverlayStateChanged += state => Dispatcher.Invoke(() => _overlay.ApplyState(state));
+        _viewModel.OnOverlayStateChanged += state => Dispatcher.Invoke(() =>
+        {
+            _overlay.ApplyState(state);
+        });
+
+        _viewModel.OnLog += msg => Log(msg);
 
         _stateManager.OnStateChanged += state => Dispatcher.Invoke(() => UpdateStatus(state));
 
