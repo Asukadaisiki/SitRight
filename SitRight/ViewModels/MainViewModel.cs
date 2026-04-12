@@ -201,8 +201,10 @@ public class MainViewModel : INotifyPropertyChanged
     {
         if (calibrationData.State == CalibrationState.FullyCalibrated)
         {
-            _valueMapper.SetBaseAngle(calibrationData.NormalAngle ?? 0);
-            OnLog?.Invoke($"[CALIB] 校准完成 → 已同步基准角到 ValueMapper: {calibrationData.NormalAngle:F2}°");
+            _valueMapper.SetCalibration(
+                (int)(calibrationData.NormalAngle ?? 0),
+                (int)(calibrationData.SlouchAngle ?? 0));
+            OnLog?.Invoke($"[CALIB] 校准完成 → 已同步校准数据到 ValueMapper: Normal={calibrationData.NormalAngle:F2}°, Slouch={calibrationData.SlouchAngle:F2}°");
         }
     }
 
