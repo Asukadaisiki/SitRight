@@ -6,11 +6,12 @@ namespace SitRight.Tests;
 
 public class ValueMapperTests
 {
-    private readonly ValueMapper _mapper;
+    private ValueMapper _mapper;
 
     public ValueMapperTests()
     {
         _mapper = new ValueMapper(hintStartLevel: 30, urgentLevel: 80);
+        _mapper.SetCalibration(normalAngle: 0, slouchAngle: 100);
     }
 
     [Fact]
@@ -75,6 +76,7 @@ public class ValueMapperTests
     public void NewMapper_HasDefaultLevels()
     {
         var mapper = new ValueMapper();
+        mapper.SetCalibration(normalAngle: 0, slouchAngle: 100);
         var state = mapper.Map(0);
         Assert.NotNull(state);
     }
