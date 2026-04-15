@@ -57,14 +57,14 @@ public partial class MainWindow : Window
     private void SimulationModeChanged(object sender, RoutedEventArgs e)
     {
         _isSimulationMode = SimulationModeCheckBox.IsChecked == true;
-
         SimulatedValueSlider.IsEnabled = _isSimulationMode;
 
         if (_isSimulationMode)
         {
             PushRawValue((int)SimulatedValueSlider.Value);
         }
-        else
+
+        _overlay.ApplyState(new OverlayState
         {
             _blurController.Reset();
             _overlay.ApplyState(new OverlayState());
@@ -116,8 +116,31 @@ public partial class MainWindow : Window
         });
     }
 
-    protected void UpdateStatus(string status, string color = "Gray")
+    private void UpdateStatus(DeviceState state)
     {
-        Dispatcher.Invoke(() => StatusText.Text = status);
+        StatusText.Text = state.ConnectionState.ToString();
+        StatusText.Foreground = state.ConnectionState switch
+        {
+            DeviceConnectionState.Receiving or DeviceConnectionState.ConnectedIdle => Brushes.Green,
+            DeviceConnectionState.Connecting => Brushes.DodgerBlue,
+            DeviceConnectionState.Timeout => Brushes.Orange,
+            DeviceConnectionState.Fault => Brushes.Red,
+            _ => Brushes.Gray
+        };
+
+        if (!state.LastReceiveTime.HasValue && state.ConnectionState == DeviceConnectionState.Disconnected)
+        {
+            RawValueText.Text = "--";
+            DisplayValueText.Text = "--";
+            LastReceiveTimeText.Text = "--";
+        }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _timeoutTimer.Stop();
+        SerialService.Dispose();
+        _overlay.Close();
+        base.OnClosed(e);
     }
 }
